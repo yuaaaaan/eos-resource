@@ -1,0 +1,124 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>EOS资源计算</title>
+
+    
+</head>
+
+<body>
+    <div>
+        <h1>EOS实时所需资源计算器</h1>
+    </div>
+
+    <div>
+        <span>当前CPU价格为：</span>
+        <span id = 'cpu_price'> 0 </span>
+        <span> ms/EOS/天</span>
+    </div>
+
+    <div>
+        <span>当前NET价格为：</span>
+        <span id = 'net_price'> 0 </span>
+        <span> KB/EOS/天</span>
+    </div>
+    <br>
+    <br>
+
+    <div>
+        <h4>当前每日普通转账十次所需租赁的资源：</h4>
+        <span>所需租赁CPU数量为：</span>
+        <span id = 'cpu_w'> 0 </span>
+        <span> EOS</span>
+        <br>
+        <span>所需租赁NET数量为：</span>
+        <span id = 'net_w'> 0 </span>
+        <span> EOS</span>
+    </div>
+
+    <br>
+    <br>
+    <div>
+        <h3>说明：</h3>
+        <ul>
+            <li>普通转账交易一次约消耗cpu为0.2ms左右，消耗net为0.12KB左右</li>
+            <li>实际消耗资源与出块节点相关，并非固定值，在第一条所述数值上下波动</li>
+            <li>不同的操作消耗资源不同，部分DAPP中较为复杂的操作所消耗的资源要远高于转账</li>
+            <li>新资源模型下资源租期为1天，即24小时内为使用则作废</li>
+            <li>由于资源价格有波动，页面显示仅为当前价格下的结果</li>
+            <li>具体个人所需资源应结合实际情况判断</li>
+        </ul>
+    </div>
+    <br>
+    <br>
+    <div>
+        <h3>更多工具</h3>
+        <p>BOID团队开发了一款基于新资源模型的工具，可以自动管理资源，将EOS存入，设置好账号就能自动配置资源了，不需要自己租赁，同时还有每日免费领取资源功能</p>
+        <p><a href="https://eospowerup.io/free" target="_blank">每日免费领取资源</a>
+            <br>
+            <a href="https://eospowerup.io/auto" target="_blank">自动管理资源(需在钱包打开登录使用)</a>
+        </p>
+    </div>
+</body>
+
+<script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/eosjs@16.0.9/lib/eos.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/eosjs-api@7.0.4/lib/eos-api.min.js"></script>
+<script>
+///////////////////链上部分
+
+    var network = {
+        blockchain: 'eos', // or eosforce
+        protocol: 'https',
+        host: 'eospush.tokenpocket.pro',
+        port: 443,
+        chainId: 'aca376f206b8fc25a6ed44dbdc66547c36c6c33e3a119ffbeaef943642f0e906'
+        };
+    //var nodeurl = 'https://eos.blockeden.cn'
+    var nodeurl = 'https://eospush.tokenpocket.pro'
+    var nodeurly = 'https://yas.maiziqianbao.net'
+    var cpu_p = 0
+    var net_p = 0
+    var cpu_weight = 0
+    var net_weight = 0
+    var cpu_num = 0
+    var net_num = 0
+
+    ////////////
+    function load_price(){
+        
+        //EosApi = require('eosjs-api')
+        rpc = EosApi({
+                httpEndpoint: nodeurl
+                           });
+        rpcy = EosApi({
+                httpEndpoint: nodeurly
+                           });
+        
+        var ret = rpc.getAccount('bp.dfs')
+        .then(result => {
+            cpu_weight = result['total_resources'].cpu_weight.replace(/[^\d.]/g,"")
+            net_weight = result['total_resources'].net_weight.replace(/[^\d.]/g,"")
+            cpu_p = result['cpu_limit'].max / 1000 / cpu_weight
+            net_p = result['net_limit'].max / 1024 / net_weight
+
+            cpu_num = 2 / cpu_p
+            net_num = 1.25 / net_p
+
+            document.getElementById("cpu_price").innerHTML=cpu_p
+            document.getElementById("net_price").innerHTML=net_p
+            document.getElementById("cpu_w").innerHTML=cpu_num
+            document.getElementById("net_w").innerHTML=net_num
+            })
+        
+
+    }
+
+    var timer=setInterval(load_price,4000);
+        
+
+</script>
+
+
+</html>
